@@ -1,39 +1,83 @@
 <?php
-error_reporting(-1);
-ini_set('display_errors', 1);
-
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
-use Psr\Http\Server\RequestHandlerInterface;
 use Slim\Factory\AppFactory;
+use Psr\Http\Server\RequestHandlerInterface;
+use Slim\Handlers\Strategies\RequestHandler;
 use Slim\Routing\RouteCollectorProxy;
 use Slim\Routing\RouteContext;
 
 require __DIR__ . '/../vendor/autoload.php';
-
-require_once './db/AccesoDatos.php';
-// require_once './middlewares/Logger.php';
-
 require_once './controllers/UsuarioController.php';
+require_once './controllers/ProductoController.php';
+require_once './controllers/MesaController.php';
+require_once './controllers/PedidoController.php';
+require_once './db/AccesoDatos.php';
+require_once './middlewares/TokenAutentificador.php';
+require_once './middlewares/Logger.php';
 
-// Instantiate App
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
+$dotenv->safeLoad();
+
 $app = AppFactory::create();
+$app->setBasePath('/public');
+$app->addRoutingMiddleware();
 
-// Add error middleware
-$app->addErrorMiddleware(true, true, true);
+$errorMiddleware = $app->addErrorMiddleware(true, true, true);
+// peticiones
+$app->group('/alta', function (RouteCollectorProxy $group) {
+  $group->post('/usuario', \UsuarioController::class . ':CargarUno');
+  $group->post('/producto', \ProductoController::class . ':CargarUno');
+  $group->post('/mesa', \MesaController::class . ':CargarUno');
+  $group->post('/pedido', \PedidoController::class . ':CargarUno');//->add(\Logger::class . ':LogMozo');
+  });  
 
+$app->group('/listar', function (RouteCollectorProxy $group) {
+  $group->post('/productos', \ProductoController::class . ':TraerTodos');
+  $group->post('/mesas', \MesaController::class . ':TraerTodos');
+  $group->post('/usuarios', \UsuarioController::class . ':TraerTodos');
+  $group->post('/pedidos', \PedidoController::class . ':TraerTodos');
+  $group->post('/pendientesBar', \PedidoController::class . ':ListarPendientes')->add(\Logger::class . ':LogBartender');
+  $group->post('/pendientesCerveceria', \PedidoController::class . ':ListarPendientes')->add(\Logger::class . ':LogCervecero');
+  $group->post('/pendientesCocina', \PedidoController::class . ':ListarPendientes')->add(\Logger::class . ':LogCocinero');
+  $group->post('/preparacionBar', \PedidoController::class . ':ListarEnPreparacion')->add(\Logger::class . ':LogBartender');
+  $group->post('/preparacionCerveceria', \PedidoController::class . ':ListarEnPreparacion')->add(\Logger::class . ':LogCervecero');
+  $group->post('/preparacionCocina', \PedidoController::class . ':ListarEnPreparacion')->add(\Logger::class . ':LogCocinero');
+  });  
 
-// Routes
-$app->group('/usuarios', function (RouteCollectorProxy $group) {
-    $group->get('[/]', \UsuarioController::class . ':TraerTodos');
-    $group->get('/{usuario}', \UsuarioController::class . ':TraerUno');
-    $group->post('[/]', \UsuarioController::class . ':CargarUno');
+  $app->group('/preparar', function (RouteCollectorProxy $group) {
+    $group->post('/bar', \PedidoController::class . ':PrepararBar')->add(\Logger::class . ':LogBartender');
+    $group->post('/cocina', \PedidoController::class . ':PrepararCocina')->add(\Logger::class . ':LogCocinero');
+    $group->post('/cerveceria', \PedidoController::class . ':PrepararCerveceria')->add(\Logger::class . ':LogCervecero');
   });
 
-$app->get('[/]', function (Request $request, Response $response) {    
-    $response->getBody()->write("Slim Framework 4 PHP");
-    return $response;
+  $app->group('/servir', function (RouteCollectorProxy $group) {
+    $group->post('/bar', \PedidoController::class . ':ServirBar')->add(\Logger::class . ':LogBartender');
+    $group->post('/cocina', \PedidoController::class . ':ServirCocina')->add(\Logger::class . ':LogCocinero');
+    $group->post('/cerveceria', \PedidoController::class . ':ServirCerveceria')->add(\Logger::class . ':LogCervecero');
+    $group->post('/pedido', \PedidoController::class . ':ServirPedido')->add(\Logger::class . ':LogMozo');
+  });
 
+
+$app->post('/RelacionarFoto', \PedidoController::class . ':AgregarFoto')->add(\Logger::class . ':LogMozo');
+$app->post('/login', \UsuarioController::class . ':Login');
+
+$app->group('/pedido', function (RouteCollectorProxy $group) {
+  $group->post('/cobrar', \PedidoController::class . ':CobrarPedido')->add(\Logger::class . ':LogMozo');
+  $group->post('/cerrarMesa', \PedidoController::class . ':CerrarMesa')->add(\Logger::class . ':LogSocio');
 });
 
+$app->post('/CalificarExperiencia', \PedidoController::class . ':CargarExperiencia');
+
+$app->group('/Consultas', function(RouteCollectorProxy $group){
+  $group->post('/ProductoMasVendido', \ProductoController::class . 'ObtenerProductoMasVendido')->add(\Logger::class . ':LogSocio');
+});
+
+
+
+
+
+// Run app
 $app->run();
+
+?>
