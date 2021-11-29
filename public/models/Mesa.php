@@ -93,6 +93,17 @@ class Mesa{
         $consulta->execute();
 
     }
+
+    public static function TraerMesaMasUsada(){
+        $objAccesoDatos = AccesoDatos::obtenerInstancia();
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT id, codigo, estado, cantidad_usos as cantidadUsos FROM `mesas` ORDER by cantidad_usos DESC LIMIT 1");
+
+        $consulta->execute();
+        
+        $listado = $consulta->fetchAll(PDO::FETCH_CLASS, 'Mesa');
+
+        return $listado[0];
+    }
 }
 
 ?>

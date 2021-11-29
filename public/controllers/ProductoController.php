@@ -45,4 +45,6 @@ class ProductoController extends Producto
         ->withHeader('Content-Type', 'application/json');
     }
 
+    
+
 }

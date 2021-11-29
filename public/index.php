@@ -68,6 +68,8 @@ $app->group('/pedido', function (RouteCollectorProxy $group) {
 });
 
 $app->post('/CalificarExperiencia', \PedidoController::class . ':CargarExperiencia');
+$app->post('/MejoresComentarios', \PedidoController::class . ':TraerMejoresComentarios')->add(\Logger::class . ':LogSocio');
+$app->post('/MesaMasUsada', \MesaController::class . ':TraerMasUsada')->add(\Logger::class . ':LogSocio');
 
 $app->group('/Consultas', function(RouteCollectorProxy $group){
   $group->post('/ProductoMasVendido', \ProductoController::class . 'ObtenerProductoMasVendido')->add(\Logger::class . ':LogSocio');

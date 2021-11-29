@@ -37,4 +37,15 @@ class MesaController extends Mesa
       return $response
         ->withHeader('Content-Type', 'application/json');
     }
+
+    public function TraerMasUsada($request, $response, $args){
+
+        $mesa = Mesa::TraerMesaMasUsada();
+
+        $payload = json_encode(array("Mesa" => $mesa));
+  
+        $response->getBody()->write($payload);
+        return $response
+        ->withHeader('Content-Type', 'application/json');
+    }
 }

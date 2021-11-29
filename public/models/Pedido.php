@@ -272,8 +272,8 @@ class Pedido{
     public static function GuadarExperiencia($codigoPedido, $codigoMesa, $mesa, $restaurante, $mozo, $cocinero, $experiencia){
         
         $objAccesoDatos = AccesoDatos::obtenerInstancia();
-        $consulta = $objAccesoDatos->prepararConsulta("INSERT INTO reseñas (codigoPedido, codigoMesa, calificacionMesa, calificacionRestaurante, calificacionMozo, calificacionCocinero, experiencia) 
-                                                        VALUES (:codigoPedido, :codigoMesa, :mesa, :restaurante, :mozo, :cocinero, :experiencia)");
+        $consulta = $objAccesoDatos->prepararConsulta("INSERT INTO reseñas (codigoPedido, codigoMesa, calificacionMesa, calificacionRestaurante, calificacionMozo, calificacionCocinero, experiencia, promedio) 
+                                                        VALUES (:codigoPedido, :codigoMesa, :mesa, :restaurante, :mozo, :cocinero, :experiencia, :promedio)");
         $consulta->bindValue(':codigoMesa', $codigoMesa);
         $consulta->bindValue(':codigoPedido', $codigoPedido);
         $consulta->bindValue(':mesa', $mesa);
@@ -282,8 +282,23 @@ class Pedido{
         $consulta->bindValue(':experiencia', $experiencia);
         $consulta->bindValue(':cocinero', $cocinero);
 
+        $promedio = ($mesa + $restaurante + $mozo + $cocinero) / 4;
+
+        $consulta->bindValue(':promedio', $promedio);
+
 
         $consulta->execute();
+    }
+
+    public static function ObtenerMejoresComentarios($cantidad){
+        $objAccesoDatos = AccesoDatos::obtenerInstancia();
+        $consulta = $objAccesoDatos->prepararConsulta("SELECT * FROM reseñas  order by promedio DESC limit :cantidad");
+        $consulta->bindValue(':cantidad', $cantidad);
+        $consulta->execute();
+
+        $listado = $consulta->fetchAll(PDO::FETCH_CLASS);
+
+        return $listado;
     }
 }
 

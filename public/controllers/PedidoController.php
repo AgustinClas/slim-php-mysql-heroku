@@ -318,6 +318,24 @@ class PedidoController extends Pedido
         return $response
             ->withHeader('Content-Type', 'application/json');
     }
+
+    public function TraerMejoresComentarios($request, $response, $args){
+        $payload = json_encode(array("mensaje" => "Datos insuficientes"));
+
+        if (isset($_POST["cantidad"])){
+            $parametros = $request->getParsedBody();
+            $cantidad = $parametros['cantidad'];
+
+            $listado = Pedido::ObtenerMejoresComentarios($cantidad);
+            $payload = json_encode(array("listado" => $listado));
+
+            
+        }
+
+        $response->getBody()->write($payload);
+            return $response
+            ->withHeader('Content-Type', 'application/json');
+    }
     
 }
 

@@ -99,6 +99,8 @@ class Producto{
         $consulta->execute();
     }
 
+    
+
 }
 
 ?>
